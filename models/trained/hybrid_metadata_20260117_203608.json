@@ -1,0 +1,13 @@
+{
+  "model_type": "hybrid",
+  "test_accuracy": 0.03760683909058571,
+  "test_top3_accuracy": 0.0,
+  "test_loss": 3.3801398277282715,
+  "training_samples": 2730,
+  "validation_samples": 585,
+  "test_samples": 585,
+  "epochs_trained": 11,
+  "augmented": false,
+  "augmentation_factor": 1,
+  "timestamp": "20260117_203608"
+}

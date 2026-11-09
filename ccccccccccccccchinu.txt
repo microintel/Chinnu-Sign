@@ -1,0 +1,251 @@
+ISL RECOGNITION SYSTEM - WINDOWS GUIDE
+
+This guide explains how to install, add more gesture samples, train the
+model, and run the webcam application on a Windows computer. You do NOT
+need to make an EXE file.
+
+IMPORTANT
+
+The Windows computer needs: - Windows 10 or Windows 11, 64-bit - Python
+3.11 (64-bit) - A working webcam - The ISL project folder copied from
+Ubuntu
+
+You do not need to copy the Ubuntu virtual environment. Do not transfer
+the isl_env folder. Windows will create its own environment and install
+its own libraries.
+
+PART 1 - PREPARE THE PROJECT ON UBUNTU
+
+Your project folder is:
+
+    ~/Desktop/ISL-Recognition-System
+
+Keep the project files and folders needed by the application,
+including: - app/ - data/ - models/ - collect_data.py -
+train_test_model.py - run_gui.py - test_webcam.py (if present)
+
+Do NOT include: - isl_env/ - pycache/ - .pytest_cache/ - .git/ (unless
+you specifically need Git history)
+
+Keep your trained model and labels if they already exist: -
+models/trained/isl_test_model.h5 - models/trained/isl_test_labels.json
+
+Create a ZIP on Ubuntu (run from the project folder):
+
+    cd ~/Desktop/ISL-Recognition-System
+    zip -r ~/Desktop/ISL-Project-Windows.zip app data models collect_data.py train_test_model.py run_gui.py test_webcam.py -x "*/__pycache__/*" "*.pyc"
+
+If test_webcam.py is not present, remove it from the zip command.
+
+Copy ISL-Project-Windows.zip to Windows using a USB drive or cloud
+storage. Extract it to the Windows Desktop. The extracted folder should
+be named:
+
+    ISL-Recognition-System
+
+PART 2 - INSTALL PYTHON ON WINDOWS
+
+1.  Open https://www.python.org/downloads/
+
+2.  Download Python 3.11, 64-bit, for Windows.
+
+3.  Run the installer.
+
+4.  IMPORTANT: tick “Add Python to PATH”.
+
+5.  Click Install Now.
+
+6.  Open Command Prompt (CMD), then check:
+
+    python –version pip –version
+
+The Python version should be 3.11.x.
+
+If Windows says Python is not recognized, restart CMD. If it still
+fails, rerun the Python installer and enable “Add Python to PATH”.
+
+PART 3 - OPEN THE PROJECT IN CMD
+
+Open Command Prompt and run:
+
+    cd %USERPROFILE%\Desktop\ISL-Recognition-System
+
+If the folder is somewhere else, use its actual path instead.
+
+Check that the files are present:
+
+    dir
+
+PART 4 - CREATE AND ACTIVATE A WINDOWS VIRTUAL ENVIRONMENT
+
+Run these commands:
+
+    python -m venv isl_env
+    isl_env\Scripts\activate
+
+When activated, CMD should show (isl_env) at the beginning of the line.
+
+Whenever you open a NEW CMD window later, activate the environment
+again:
+
+    cd %USERPROFILE%\Desktop\ISL-Recognition-System
+    isl_env\Scripts\activate
+
+PART 5 - INSTALL PYTHON LIBRARIES
+
+With (isl_env) active, run:
+
+    python -m pip install --upgrade pip
+    pip install tensorflow==2.17.1
+    pip install mediapipe==0.10.21
+    pip install opencv-contrib-python==4.11.0.86
+    pip install numpy==1.26.4
+    pip install pandas==2.2.3
+    pip install pillow
+
+Check the imports:
+
+    python -c "import cv2, mediapipe, tensorflow, pandas, numpy; print('All libraries working')"
+
+If installation reports an error, copy the complete error message. Do
+not randomly install different versions because package compatibility
+matters.
+
+Tkinter is normally included with the standard Windows Python installer.
+You can test it with:
+
+    python -c "import tkinter; print('Tkinter working')"
+
+PART 6 - COLLECT MORE HAND GESTURE DATA
+
+Make sure the webcam is connected and no other application is using it.
+
+Run:
+
+    python collect_data.py
+
+In the collection window: - Press A to select letter A. - Press B to
+select letter B. - Press V to select letter V. - Press SPACE to save a
+sample. - Press Q to quit.
+
+Collect samples with your hand in different positions, angles,
+distances, and lighting conditions. Keep your hand fully visible to the
+webcam.
+
+Suggested starting target: - A: 150 to 300 samples - B: 150 to 300
+samples - V: 150 to 300 samples
+
+These are suggested targets, not a guarantee of accuracy.
+
+IMPORTANT: The current CSV collection/training workflow was set up for
+the labels already supported by the project. Do not assume every A-Z
+letter is supported just because the keyboard has those keys. Check
+collect_data.py and the training script before collecting additional
+labels. Letters involving movement, such as J and Z, need a motion-aware
+model; a single-frame static classifier is not enough.
+
+The collector is expected to append new samples to the existing CSV. Do
+not delete the CSV if you want to keep previously collected samples.
+
+PART 7 - CHECK THE DATASET
+
+Run:
+
+    python -c "import pandas as pd; d=pd.read_csv('data/isl_landmarks/isl_alphabet.csv'); print(d['label'].value_counts().sort_index()); print('Total samples:',len(d))"
+
+Check that the sample counts increase after collection.
+
+If you see FileNotFoundError, check that you are in the project folder
+and that this file exists:
+
+    data\isl_landmarks\isl_alphabet.csv
+
+PART 8 - TRAIN THE MODEL AGAIN
+
+After collecting data, close the collection window and run:
+
+    python train_test_model.py
+
+Wait for training to finish. The script should save or update:
+
+    models\trained\isl_test_model.h5
+    models\trained\isl_test_labels.json
+
+These files contain the trained model and its label mapping. Keep both
+files together. The model should be retrained after adding more data so
+it can learn from the new samples.
+
+PART 9 - CHECK AND RUN THE GUI
+
+Check the GUI Python file for syntax errors:
+
+    python -m py_compile app\gui\advanced_detector.py
+
+If the command returns to the prompt without an error, run:
+
+    python run_gui.py
+
+Allow camera access if Windows asks. Place your hand in front of the
+webcam and check the displayed prediction.
+
+If the GUI does not start: 1. Confirm the virtual environment is active.
+2. Confirm the model and label files exist:
+
+       dir models\trained
+
+3.  Check that the webcam works in the Windows Camera app.
+4.  Copy the full CMD error message so it can be diagnosed.
+
+PART 10 - THE SHORT WORKFLOW FOR FUTURE USE
+
+Each time you want to add more samples and retrain:
+
+    cd %USERPROFILE%\Desktop\ISL-Recognition-System
+    isl_env\Scripts\activate
+    python collect_data.py
+
+Collect samples. Press Q to close the collector. Then run:
+
+    python train_test_model.py
+    python run_gui.py
+
+If you only want to run the already-trained application:
+
+    cd %USERPROFILE%\Desktop\ISL-Recognition-System
+    isl_env\Scripts\activate
+    python run_gui.py
+
+TROUBLESHOOTING
+
+“python is not recognized”: - Install Python 3.11 64-bit and enable Add
+Python to PATH. - Close and reopen CMD.
+
+“No module named …”: - Activate isl_env. - Install the missing library
+using the commands in Part 5.
+
+“Could not open camera”: - Close Zoom, Teams, browser camera tabs, and
+other webcam applications. - Check Windows camera privacy permissions. -
+Try the webcam again.
+
+“Model file not found”: - Check that modelscontains both the .h5 model
+and the JSON labels. - If they are missing, run the training script
+after checking that the CSV dataset exists.
+
+“Prediction is inaccurate”: - One or a few samples per class are not
+enough for reliable predictions. - Collect varied samples for each
+supported class. - Keep the training labels and model output classes
+consistent. - Test with hand positions and lighting not used during
+collection.
+
+IMPORTANT PROJECT NOTES
+
+-   This guide follows the project’s current scripts and filenames.
+-   The current demo dataset described in the earlier setup contains A,
+    B, and V.
+-   More samples can improve learning, but accuracy is not guaranteed.
+-   A static landmark classifier does not properly recognize moving
+    gestures such as J and Z without a sequence-based model.
+-   Do not delete your original dataset or trained model files unless
+    you have a backup.
+
+END OF GUIDE
